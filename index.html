@@ -3,121 +3,441 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>simanto are you read to Zone</title>
+    <title>Wallpaper App</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-
         body {
-            line-height: 1.6;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #f0f0f0;
             color: #333;
         }
 
-        header {
-            background-color: #2c3e50;
-            color: white;
-            text-align: center;
-            padding: 1rem;
+        .search-container {
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            padding: 10px 15px;
+            background-color: rgba(240, 240, 240, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
-        header h1 {
-            margin-bottom: 1rem;
+        .search-input-wrapper {
+            position: relative;
         }
 
-        nav a {
-            color: white;
-            text-decoration: none;
-            margin: 0 1rem;
-            font-size: 1.1rem;
+        #search-input {
+            width: 100%;
+            padding: 10px 50px 10px 20px;
+            font-size: 16px;
+            border-radius: 25px;
+            border: 1px solid #e0e0e0;
+            background-color: #ffffff;
+            color: #333;
+            box-sizing: border-box;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            -webkit-appearance: none;
+            transition: all 0.3s ease-in-out;
         }
 
-        nav a:hover {
-            color: #3498db;
+        .search-icon {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            right: 20px;
+            left: auto;
+            width: 20px;
+            height: 20px;
+            transition: all 0.3s ease-in-out;
+            pointer-events: none;
+        }
+        
+        .search-container.focused #search-input {
+            padding-left: 50px;
+            padding-right: 20px;
         }
 
-        main {
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-            text-align: center;
+        .search-container.focused .search-icon {
+            left: 20px;
+            right: auto;
+        }
+        
+        #search-input:focus {
+            outline: none;
+            border-color: #007aff;
+            box-shadow: 0 3px 10px rgba(0, 122, 255, 0.2);
+        }
+        
+        #search-input::placeholder {
+            color: #8e8e93;
+            transition: color 0.3s ease-in-out;
         }
 
-        section {
-            margin-bottom: 3rem;
+        #search-input:focus::placeholder {
+            color: transparent;
         }
 
-        .ad-container {
-            margin: 2rem 0;
-            min-height: 100px;
+        .category-container {
+            display: flex;
+            overflow-x: auto;
+            padding: 0 15px 15px 15px;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .category-container::-webkit-scrollbar {
+            display: none;
+        }
+        .category-btn {
+            padding: 8px 16px;
+            margin-right: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            border-radius: 18px;
+            background-color: #e0e0e0;
+            color: #333;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease-in-out;
+        }
+        .category-btn.active {
+            background-color: #333;
+            color: #fff;
         }
 
-        footer {
-            background-color: #2c3e50;
-            color: white;
-            text-align: center;
-            padding: 1rem;
+        #wallpaper-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 15px;
+            padding: 0 15px 15px 15px;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .wallpaper-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+            opacity: 0;
+        }
+
+        .wallpaper-item.animate-entry {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+        
+        .wallpaper-image-wrapper {
+            cursor: pointer;
             width: 100%;
         }
+        
+        .wallpaper-item img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 20px;
+            display: block;
+        }
 
-        /* Responsive Design */
-        @media (max-width: 600px) {
-            nav a {
-                display: block;
-                margin: 0.5rem 0;
-            }
+        .title-link {
+            text-decoration: none;
+            color: #333;
+        }
+        .wallpaper-item .title {
+            font-size: 16px;
+            font-weight: 400;
+            text-align: center;
+            margin: 0;
+            line-height: 1.3;
+        }
+
+        .download-btn {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 12px;
+            padding: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.2s;
+            width: 100%;
+        }
+        
+        .download-btn:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+        .download-btn:hover:not(:disabled) {
+            background-color: #cccccc;
+        }
+        .download-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: #333;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 12px;
+        }
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            color: #fff;
+            cursor: pointer;
+        }
+        .close-btn svg {
+            width: 30px;
+            height: 30px;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Simanto</h1>
-        <nav>
-            <a href="#click-me-to-zone">Click Me to Zone</a>
-            <a href="#click-go">Click Go</a>
-        </nav>
-    </header>
-    <main>
-        <section id="click-me-to-zone">
-            <h2>Click Me to Zone</h2>
-            <p>Explore the exciting features of Hot Zone!</p>
-            <!-- Advertisement Script -->
-            <div class="ad-container">
-                <script async type="application/javascript" src="https://a.magsrv.com/ad-provider.js"></script>
-                <ins class="eas6a97888e37" data-zoneid="5706348"></ins>
-                <script>(AdProvider = window.AdProvider || []).push({"serve": {}});</script>
-            </div>
-        </section>
-        <section id="click-go">
-            <h2>Click Go - Get Started!</h2>
-            <p>Start your journey with Hot Zone now!</p>
-            <!-- Advertisement Script -->
-            <div class="ad-container">
-                <script async type="application/javascript" src="https://a.magsrv.com/ad-provider.js"></script>
-                <ins class="eas6a97888e37" data-zoneid="5706348"></ins>
-                <script>(AdProvider = window.AdProvider || []).push({"serve": {}});</script>
-            </div>
-        </section>
-    </main>
-    <footer>
-        <p>&copy; 2025 Hot Zone. All rights reserved.</p>
-    </footer>
+
+    <div class="search-container">
+        <div class="search-input-wrapper">
+            <input type="search" id="search-input" placeholder="Search Wallpapers">
+            <span class="search-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><path fill="#8e8e93" d="M 21 3 C 11.601563 3 4 10.601563 4 20 C 4 29.398438 11.601563 37 21 37 C 24.355469 37 27.460938 36.015625 30.09375 34.34375 L 42.375 46.625 L 46.625 42.375 L 34.5 30.28125 C 36.679688 27.421875 38 23.878906 38 20 C 38 10.601563 30.398438 3 21 3 Z M 21 7 C 28.199219 7 34 12.800781 34 20 C 34 27.199219 28.199219 33 21 33 C 13.800781 33 8 27.199219 8 20 C 8 12.800781 13.800781 7 21 7 Z"/></svg>
+            </span>
+        </div>
+    </div>
+
+    <div class="category-container"></div>
+
+    <main id="wallpaper-container"></main>
+
+    <div id="preview-modal" class="modal">
+        <span class="close-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 32 32"><path fill="currentColor" d="M24.879 2.879A3 3 0 1 1 29.12 7.12l-8.79 8.79a.125.125 0 0 0 0 .177l8.79 8.79a3 3 0 1 1-4.242 4.243l-8.79-8.79a.125.125 0 0 0-.177 0l-8.79 8.79a3 3 0 1 1-4.243-4.242l8.79-8.79a.125.125 0 0 0 0-.177l-8.79-8.79A3 3 0 0 1 7.12 2.878l8.79 8.79a.125.125 0 0 0 .177 0l8.79-8.79Z"/></svg>
+        </span>
+        <img class="modal-content" id="modal-image">
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('Hot Zone website loaded successfully!');
-            // Smooth scroll for navigation
-            document.querySelectorAll('nav a').forEach(anchor => {
-                anchor.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const targetId = this.getAttribute('href').substring(1);
-                    const targetSection = document.getElementById(targetId);
-                    targetSection.scrollIntoView({ behavior: 'smooth' });
-                });
+            const searchInput = document.getElementById('search-input');
+            const searchContainer = document.querySelector('.search-container');
+            const categoryContainer = document.querySelector('.category-container');
+            const container = document.getElementById('wallpaper-container');
+            const modal = document.getElementById('preview-modal');
+            const modalImage = document.getElementById('modal-image');
+            const closeBtn = document.querySelector('.close-btn');
+            
+            // --- CORRECTED CATEGORY STRUCTURE ---
+            const allCategoryUrl = 'https://raw.githubusercontent.com/ultrafinixboy/json/main/data.json';
+            
+            const categories = [
+                { name: 'All', url: allCategoryUrl }, // 'All' now has its own specific URL
+                { name: 'Popular', url: 'example your link popular' },
+                { name: 'Action', url: 'example your link action' },
+                { name: 'Anime', url: 'example your link anime' },
+                { name: 'Beautiful', url: 'example your link beautiful' },
+                { name: 'Natural', url: 'example your link natural' },
+                { name: 'Amazing', url: 'example your link amazing' },
+                { name: 'Attitude', url: 'example your link attitude' },
+                { name: 'Dangerous', url: 'example your link dangerous' },
+            ];
+            
+            let categoryDataCache = {};
+            let currentWallpapers = [];
+            let isSearching = false;
+
+            // --- Initial Setup ---
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'category-btn';
+                btn.textContent = cat.name;
+                btn.dataset.category = cat.name;
+                if (cat.name === 'All') btn.classList.add('active');
+                categoryContainer.appendChild(btn);
             });
+
+            loadCategory('All'); // Initial load of the "All" category
+
+            // --- Event Listeners ---
+            searchInput.addEventListener('focus', () => searchContainer.classList.add('focused'));
+            searchInput.addEventListener('blur', () => {
+                if (searchInput.value === '') searchContainer.classList.remove('focused');
+            });
+
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const filtered = currentWallpapers.filter(w => w.title.toLowerCase().includes(searchTerm));
+
+                if (searchTerm.length === 1 && !isSearching) {
+                    isSearching = true;
+                    renderNewWallpapers(filtered, true);
+                } else if (searchTerm.length > 0) {
+                    renderNewWallpapers(filtered, false);
+                } else {
+                    isSearching = false;
+                    renderNewWallpapers(currentWallpapers, true);
+                }
+            });
+
+            categoryContainer.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') {
+                    const categoryName = e.target.dataset.category;
+                    loadCategory(categoryName);
+                }
+            });
+
+            // --- Core Functions ---
+            async function loadCategory(categoryName) {
+                document.querySelectorAll('.category-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.category === categoryName);
+                });
+                searchInput.value = '';
+                isSearching = false;
+
+                try {
+                    // Check cache first for any category
+                    if (categoryDataCache[categoryName]) {
+                        currentWallpapers = categoryDataCache[categoryName];
+                        renderNewWallpapers(currentWallpapers, true);
+                        return; // Exit if data is in cache
+                    }
+                    
+                    container.innerHTML = `<p>Loading ${categoryName} Wallpapers...</p>`;
+                    const category = categories.find(c => c.name === categoryName);
+                    
+                    // Fetch data from the selected category's URL
+                    const response = await fetch(category.url);
+                    if (!response.ok) throw new Error(`Invalid URL or network error for ${category.url}`);
+                    
+                    const data = await response.json();
+                    currentWallpapers = data;
+                    categoryDataCache[categoryName] = data; // Cache the fetched data
+                    renderNewWallpapers(currentWallpapers, true);
+
+                } catch (error) {
+                    console.error('Error fetching category data:', error);
+                    // Display a user-friendly message for placeholder links or real errors
+                    container.innerHTML = `<p style="text-align: center; grid-column: 1 / -1;">Wallpapers for '${categoryName}' are not available yet.</p>`;
+                    currentWallpapers = []; // Clear current wallpapers on failure
+                }
+            }
+            
+            function renderNewWallpapers(wallpapers, shouldAnimate) {
+                container.innerHTML = '';
+                
+                if (!wallpapers || wallpapers.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; grid-column: 1 / -1;">No results found.</p>';
+                    return;
+                }
+
+                wallpapers.forEach((wallpaper, index) => {
+                    const wallpaperItem = document.createElement('div');
+                    wallpaperItem.className = 'wallpaper-item';
+                    
+                    if (shouldAnimate) {
+                        wallpaperItem.classList.add('animate-entry');
+                        wallpaperItem.style.animationDelay = `${index * 0.05}s`;
+                    } else {
+                        wallpaperItem.style.opacity = 1;
+                    }
+                    
+                    const imageWrapper = document.createElement('div');
+                    imageWrapper.className = 'wallpaper-image-wrapper';
+                    imageWrapper.onclick = () => openModal(wallpaper.link);
+                    const img = document.createElement('img');
+                    img.src = wallpaper.link;
+                    img.alt = wallpaper.title;
+                    img.loading = 'lazy';
+                    imageWrapper.appendChild(img);
+                    
+                    const titleLink = document.createElement('a');
+                    titleLink.href = wallpaper.link;
+                    titleLink.target = '_blank';
+                    titleLink.className = 'title-link';
+                    const title = document.createElement('h3');
+                    title.className = 'title';
+                    title.textContent = wallpaper.title;
+                    titleLink.appendChild(title);
+                    
+                    const downloadButton = document.createElement('button');
+                    downloadButton.className = 'download-btn';
+                    downloadButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="1792" height="1792" viewBox="0 0 1792 1792"><path d="M1344 1344q0-26-19-45t-45-19-45 19-19 45 19 45 45 19 45-19 19-45zm256 0q0-26-19-45t-45-19-45 19-19 45 19 45 45 19 45-19 19-45zm128-224v320q0 40-28 68t-68 28H160q-40 0-68-28t-28-68v-320q0-40 28-68t68-28h465l135 136q58 56 136 56t136-56l136-136h464q40 0 68 28t28 68zm-325-569q17 41-14 70l-448 448q-18 19-45 19t-45-19L403 621q-31-29-14-70 17-39 59-39h256V64q0-26 19-45t45-19h256q26 0 45 19t19 45v448h256q42 0 59 39z"></path></svg>`;
+                    
+                    downloadButton.onclick = (event) => {
+                        event.stopPropagation();
+                        downloadImage(wallpaper.link, `${wallpaper.title}.jpg`, downloadButton);
+                    };
+                    
+                    wallpaperItem.appendChild(imageWrapper);
+                    wallpaperItem.appendChild(titleLink);
+                    wallpaperItem.appendChild(downloadButton);
+                    container.appendChild(wallpaperItem);
+                });
+            }
+
+            function openModal(imageUrl) {
+                modalImage.src = imageUrl;
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeModal() {
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+
+            closeBtn.onclick = closeModal;
+            modal.onclick = (event) => {
+                if (event.target === modal) closeModal();
+            };
+
+            function downloadImage(url, filename, button) {
+                const originalContent = button.innerHTML;
+                button.disabled = true;
+                button.innerHTML = 'Downloading...';
+                fetch(url)
+                    .then(response => response.blob())
+                    .then(blob => {
+                        const blobUrl = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = blobUrl;
+                        a.download = filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(blobUrl);
+                        a.remove();
+                    })
+                    .catch(() => alert('Download failed'))
+                    .finally(() => {
+                        button.disabled = false;
+                        button.innerHTML = originalContent;
+                    });
+            }
         });
     </script>
+
 </body>
-</html>
+            </html>
