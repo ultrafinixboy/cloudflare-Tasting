@@ -249,14 +249,11 @@
             const modalImage = document.getElementById('modal-image');
             const closeBtn = document.querySelector('.close-btn');
             
-            // --- CORRECTED CATEGORY STRUCTURE ---
-            const allCategoryUrl = 'https://raw.githubusercontent.com/ultrafinixboy/json/main/data.json';
-            
             const categories = [
-                { name: 'All', url: allCategoryUrl }, // 'All' now has its own specific URL
-                { name: 'Popular', url: 'example your link popular' },
-                { name: 'Action', url: 'example your link action' },
-                { name: 'Anime', url: 'example your link anime' },
+                { name: 'All', url: null }, // URL is not needed for 'All'
+                { name: 'Popular', url: 'https://raw.githubusercontent.com/ultrafinixboy/json/main/data.json' },
+                { name: 'Action', url: 'https://raw.githubusercontent.com/ultrafinixboy/json/488c4c5b5e75c5960fb0adcbd3bfad82b2ce85d8/data1.json' },
+                { name: 'Anime', url: 'https://raw.githubusercontent.com/ultrafinixboy/data/bacb374e9b7a51db80b1cef1bb99bf814384ad87/data.json' },
                 { name: 'Beautiful', url: 'example your link beautiful' },
                 { name: 'Natural', url: 'example your link natural' },
                 { name: 'Amazing', url: 'example your link amazing' },
@@ -321,24 +318,67 @@
                     if (categoryDataCache[categoryName]) {
                         currentWallpapers = categoryDataCache[categoryName];
                         renderNewWallpapers(currentWallpapers, true);
-                        return; // Exit if data is in cache
+                        return;
                     }
                     
                     container.innerHTML = `<p>Loading ${categoryName} Wallpapers...</p>`;
-                    const category = categories.find(c => c.name === categoryName);
-                    
-                    // Fetch data from the selected category's URL
-                    const response = await fetch(category.url);
-                    if (!response.ok) throw new Error(`Invalid URL or network error for ${category.url}`);
-                    
-                    const data = await response.json();
-                    currentWallpapers = data;
-                    categoryDataCache[categoryName] = data; // Cache the fetched data
-                    renderNewWallpapers(currentWallpapers, true);
+
+                    // --- NEW LOGIC FOR "ALL" CATEGORY ---
+                    if (categoryName === 'All') {
+                        const allWallpapers = [];
+                        const seenLinks = new Set(); // To prevent duplicates
+                        
+                        // Get all categories except 'All'
+                        const categoriesToFetch = categories.filter(c => c.name !== 'All');
+                        
+                        const promises = categoriesToFetch.map(async (cat) => {
+                            try {
+                                // First check cache for sub-category
+                                if (categoryDataCache[cat.name]) {
+                                    return categoryDataCache[cat.name];
+                                }
+                                // If not cached, fetch it
+                                const response = await fetch(cat.url);
+                                if (!response.ok) return []; // Return empty array on fetch error
+                                const data = await response.json();
+                                categoryDataCache[cat.name] = data; // Cache the data for next time
+                                return data;
+                            } catch (error) {
+                                console.error(`Failed to fetch data for ${cat.name}:`, error);
+                                return []; // Return empty array if a URL is invalid or fails
+                            }
+                        });
+
+                        const results = await Promise.all(promises);
+                        
+                        // Combine all results and remove duplicates
+                        results.forEach(categoryData => {
+                            categoryData.forEach(wallpaper => {
+                                if (!seenLinks.has(wallpaper.link)) {
+                                    allWallpapers.push(wallpaper);
+                                    seenLinks.add(wallpaper.link);
+                                }
+                            });
+                        });
+
+                        currentWallpapers = allWallpapers;
+                        categoryDataCache[categoryName] = allWallpapers; // Cache the combined 'All' data
+                        renderNewWallpapers(currentWallpapers, true);
+
+                    } else {
+                        // --- Original logic for other categories ---
+                        const category = categories.find(c => c.name === categoryName);
+                        const response = await fetch(category.url);
+                        if (!response.ok) throw new Error(`Invalid URL or network error for ${category.url}`);
+                        
+                        const data = await response.json();
+                        currentWallpapers = data;
+                        categoryDataCache[categoryName] = data; // Cache the fetched data
+                        renderNewWallpapers(currentWallpapers, true);
+                    }
 
                 } catch (error) {
                     console.error('Error fetching category data:', error);
-                    // Display a user-friendly message for placeholder links or real errors
                     container.innerHTML = `<p style="text-align: center; grid-column: 1 / -1;">Wallpapers for '${categoryName}' are not available yet.</p>`;
                     currentWallpapers = []; // Clear current wallpapers on failure
                 }
@@ -440,4 +480,4 @@
     </script>
 
 </body>
-            </html>
+                    </html>
